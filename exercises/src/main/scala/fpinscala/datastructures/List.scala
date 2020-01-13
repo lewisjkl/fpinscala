@@ -26,7 +26,7 @@ object List { // `List` companion object. Contains functions for creating and wo
   val x = List(1,2,3,4,5) match {
     case Cons(x, Cons(2, Cons(4, _))) => x
     case Nil => 42
-    case Cons(x, Cons(y, Cons(3, Cons(4, _)))) => x + y
+    case Cons(x, Cons(y, Cons(3, Cons(4, _)))) => x + y // it chooses this one
     case Cons(h, t) => h + sum(t)
     case _ => 101
   }
@@ -65,4 +65,13 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
+}
+
+object ListTests {
+
+  private val testMatch = List.x == 3
+
+  def main(args: Array[String]): Unit = {
+    println(testMatch)
+  }
 }
