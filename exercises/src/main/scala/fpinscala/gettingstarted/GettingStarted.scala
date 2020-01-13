@@ -36,7 +36,14 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib(n: Int): Int = ???
+  def fib(n: Int): Int = {
+    @annotation.tailrec
+    def go(previous: Int, next: Int, n: Int): Int =
+      if (n == 0) previous
+      else go(next, next + previous, n - 1)
+
+    go(0, 1, n)
+  }
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = {
@@ -140,7 +147,16 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    @annotation.tailrec
+    def loop(remainingList: Array[A]): Boolean = {
+      if (remainingList.length <= 1) true
+      else if (gt(remainingList.head, remainingList(1))) loop(remainingList.tail)
+      else false
+    }
+
+    loop(as)
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
@@ -152,14 +168,12 @@ object PolymorphicFunctions {
 
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
-  def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ???
+  def curry[A,B,C](f: (A, B) => C): A => (B => C) = a => b => f(a, b)
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
-  def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ???
+  def uncurry[A,B,C](f: A => B => C): (A, B) => C = (a, b) => f(a)(b)
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -173,6 +187,37 @@ object PolymorphicFunctions {
 
   // Exercise 5: Implement `compose`
 
-  def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ???
+  def compose[A,B,C](f: B => C, g: A => B): A => C = a => f(g(a))
+}
+
+object TestPolymorphicFunctions {
+  import PolymorphicFunctions._
+
+  private def testSorted: Boolean = {
+    val intIsSorted = (i: Int, j: Int) => i <= j
+    val shouldBeTrue = List(Array(1, 2, 3, 4), Array(1, 2, 3, 4, 4), Array.empty)
+    val shouldBeFalse = List(Array(1, 2, 5, 1), Array(1, 2, 3, 4, -1))
+    shouldBeTrue.forall(isSorted(_, intIsSorted)) &&
+    shouldBeFalse.forall(!isSorted(_, intIsSorted))
+  }
+
+  private def testCurrying: Boolean = {
+    def testFunc(a: Int, b: Int): Int = a + b
+    curry(testFunc)(1)(2) == 3 &&
+    uncurry(curry(testFunc))(1, 2) == 3
+  }
+
+  private def testCompose: Boolean = {
+    val test1: Int => String = _.toString
+    val test2: String => Option[String] = Some(_)
+    (test2 compose test1)(10).contains("10")
+  }
+
+  // Some examples of anonymous functions:
+  def main(args: Array[String]): Unit = {
+    println(testSorted)
+    println(testCurrying)
+    println(testCompose)
+    // should all print true
+  }
 }
